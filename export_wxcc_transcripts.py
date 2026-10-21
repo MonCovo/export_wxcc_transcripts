@@ -6,6 +6,7 @@ Steps:
   1. Search API (GraphQL)  -> list handled telephony task IDs + call metadata in the window
   2. POST /v1/captures/query -> get short-lived (<=60 min) download URLs for each task's transcript
   3. Download each transcript immediately and save as <taskId>.json, plus an index.csv of metadata
+     (queue, agent, wrap-up, talk time, and Topic Analytics topicName / contactDriver per call)
 
 Requirements:  pip install requests
 Auth:          a Webex access token for an admin / Service App with cjp:config_read (+ cjp-analyzer:read)
@@ -30,8 +31,9 @@ query Tasks($from: Long!, $to: Long!, $after: String) {
   taskDetails(from: $from, to: $to,
     filter: { and: [ { channelType: { equals: telephony } }, { isContactHandled: { equals: true } } ] },
     pagination: { cursor: $after }) {
-    tasks { id createdTime endedTime direction origin
-            lastQueue { name } lastAgent { name } lastWrapupCodeName connectedDuration }
+    tasks { id createdTime endedTime direction
+            lastQueue { name } lastAgent { name } lastEntryPoint { name }
+            lastWrapupCodeName connectedDuration topicName contactDriver }
     pageInfo { endCursor hasNextPage }
   }
 }"""
@@ -120,7 +122,8 @@ def main():
     with open(index_path, "a", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
         if new_index:
-            w.writerow(["taskId", "createdTime", "queue", "agent", "wrapUp", "talkSec", "transcriptFile"])
+            w.writerow(["taskId", "createdTime", "endedTime", "direction", "entryPoint", "queue", "agent",
+                        "wrapUp", "talkSec", "topicName", "contactDriver", "transcriptFile"])
 
         todo = [t for t in tasks if not os.path.exists(os.path.join(a.out, f"{t['id']}.json"))]
         print(f"  {len(todo)} still to download")
@@ -147,10 +150,12 @@ def main():
                     fname = f"{t['id']}.json"
                     with open(os.path.join(a.out, fname), "wb") as out:
                         out.write(content)
-                w.writerow([t["id"],
-                            datetime.fromtimestamp(t["createdTime"] / 1000, timezone.utc).isoformat(),
+                iso = lambda v: datetime.fromtimestamp(v / 1000, timezone.utc).isoformat() if v else ""
+                w.writerow([t["id"], iso(t.get("createdTime")), iso(t.get("endedTime")), t.get("direction"),
+                            (t.get("lastEntryPoint") or {}).get("name"),
                             (t.get("lastQueue") or {}).get("name"), (t.get("lastAgent") or {}).get("name"),
                             t.get("lastWrapupCodeName"), round((t.get("connectedDuration") or 0) / 1000),
+                            t.get("topicName"), t.get("contactDriver"),  # Topic Analytics (null = not analysed)
                             fname])
             fh.flush()
             print(f"  {min(i + a.batch, len(todo))}/{len(todo)}")
