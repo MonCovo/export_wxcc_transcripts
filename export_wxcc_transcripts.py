@@ -104,6 +104,7 @@ def main():
     p.add_argument("--out", default="./transcripts")
     p.add_argument("--batch", type=int, default=10, help="task IDs per captures query")
     p.add_argument("--dry-run-one", action="store_true", help="print one raw captures response and stop")
+    p.add_argument("--max-tasks", type=int, default=0, help="only process the first N calls (testing)")
     a = p.parse_args()
 
     token = os.environ.get("WXCC_TOKEN")
@@ -116,6 +117,10 @@ def main():
     print("Listing tasks...")
     tasks = list(list_tasks(s, a.api, a.org, ms(a.frm), ms(a.to)))
     print(f"  {len(tasks)} handled telephony calls found")
+    if a.max_tasks:
+        tasks = tasks[:a.max_tasks]
+        print(f"  limiting to first {len(tasks)} (--max-tasks)")
+
 
     index_path = os.path.join(a.out, "index.csv")
     new_index = not os.path.exists(index_path)

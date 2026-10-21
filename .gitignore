@@ -6,6 +6,8 @@ __pycache__/
 .venv/
 venv/
 env/
+.test_out/
+index.csv
 
 # Environment variables / secrets
 .env
