@@ -4,6 +4,9 @@
 * Asks POST /v1/captures/query for download links, sending your organisation ID and the call IDs 2. Each link expires after at most 60 minutes 3, so the script downloads each transcript straight away.
 * Saves one <callId>.json file per call, plus an index.csv listing date, queue, agent, outcome code and talk time. If it stops part-way, running it again skips calls already saved. It also waits and retries when Webex rate-limits it.
 
+
+
+
 ## To run it
 
 *last six months*
@@ -14,6 +17,14 @@ export WXCC_TOKEN="<admin or Service App token>"
 python export_wxcc_transcripts.py --org <ORG_ID> --api https://api.wxcc-eu1.cisco.com \
   --from 2026-04-21 --to 2026-10-21 --out ./transcripts --dry-run-one
   ```
+## What the export contains
+
+| File  | Contents |
+|---|---|
+|callId.json|The transcript itself. I haven't seen a real file, so I can't confirm whether it holds anything besides the conversation. Running --dry-run-one will show you|
+|index.csv, one row per call|Call ID, start and end time, direction, entry point, queue, agent, outcome code, talk time, topic name, contact driver, transcript filename|
+
+
 
 ### Important Note  
 * check one response first
