@@ -18,8 +18,8 @@ python export_wxcc_transcripts.py --org <ORG_ID> --api https://api.wxcc-eu1.cisc
 ### Important Note  
 * check one response first
 * then run again without --dry-run-one
-* **Token:** it needs cjp:config_read or cjp-analyzer:read 4. You can get a temporary token from the developer portal or Postman, but it expires after 12 hours 5. If it runs out mid-export, get a new token and run the script again; it picks up where it stopped.
-* **API address:** use your region's address. I've assumed eu1, but check it.
+* **Token:** it needs cjp:config_read or cjp-analyzer:read. You can get a temporary token from the [developer portal](https://developer.webex.com/) (sign-in, click your avatar and you should see your bearer token and org id), but it expires after 12 hours 5. If it runs out mid-export, get a new token and run the script again; it picks up where it stopped.
+* **API address:** use your region's address. I've used eu1 (UK), ammend accordingly.
 * **Personal data:** the files may contain customer names, phone numbers and other details. Store them securely, mask personal data and delete the raw export when you're done.
 
 ## Impact on production
